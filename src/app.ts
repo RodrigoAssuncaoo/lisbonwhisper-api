@@ -1,10 +1,12 @@
 //Importa a biblioteca Express, que permite criar e gerir o servidor e as rotas da API.
-
 import express from "express";
 
 // Importa o CORS, que permite que aplicações de outras origens (por exemplo, um frontend) comuniquem com a API.
 
 import cors from 'cors';
+
+import { prisma } from './config/prisma/prisma';
+
 
 // Cria uma aplicação Express. A variável app será utilizada para configurar o servidor e definir as rotas.
 
@@ -22,6 +24,11 @@ app.use(express.json());
 
 app.get('/', (req, res) => {
     res.json({ mensagem: 'Lisbon Whisper API a funcionar' });
+});
+
+app.get('/tipos-roteiro', async (req, res) => {
+    const tipos = await prisma.tipo_roteiros.findMany();
+    res.json(tipos);
 });
 
 // Envia uma resposta no formato JSON com uma mensagem a confirmar que a API está a funcionar.
