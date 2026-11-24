@@ -1,0 +1,3 @@
+npm install mysql2
+npm install express bcrypt
+node server.js
