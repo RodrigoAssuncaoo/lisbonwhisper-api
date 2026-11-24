@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model avaliacoes {
+  id                Int      @id @default(autoincrement()) @db.UnsignedInt
+  user_id           Int?     @db.UnsignedInt
+  id_roteiro        Int?     @db.UnsignedInt
+  avaliacao_roteiro Int?
+  comentario        String?  @db.VarChar(255)
+  users             users?   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "avaliacoes_ibfk_1")
+  roteiros          roteiros? @relation(fields: [id_roteiro], references: [id])
+
+  @@index([id_roteiro], map: "id_roteiro")
+  @@index([user_id], map: "user_id")
+}
+
+model grupo_de_visitas {
+  id                 Int             @id @default(autoincrement()) @db.UnsignedInt
+  id_users           Int             @db.UnsignedInt
+  id_roteiro_compras Int             @db.UnsignedInt
+  users              users           @relation(fields: [id_users], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "grupo_de_visitas_ibfk_1")
+  roteiro_compras    roteiro_compras @relation(fields: [id_roteiro_compras], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "grupo_de_visitas_ibfk_2")
+
+  @@index([id_roteiro_compras], map: "id_roteiro_compras")
+  @@index([id_users], map: "id_users")
+}
+
+model guias {
+  id              Int               @id @default(autoincrement()) @db.UnsignedInt
+  nome            String            @db.VarChar(255)
+  contacto        Int               @unique(map: "contacto")
+  email           String            @unique(map: "email") @db.VarChar(255)
+  idiomasFalados  String            @db.VarChar(255)
+  roteiro_compras roteiro_compras[]
+}
+
+model pontos {
+  id             Int              @id @default(autoincrement())
+  nome           String           @db.VarChar(255)
+  longitude      Decimal          @db.Decimal(10, 6)
+  latitude       Decimal          @db.Decimal(10, 6)
+  ponto_inicial  Boolean
+  ponto_final    Boolean
+  roteiro_pontos roteiro_pontos[]
+}
+
+model roteiro_compra_roteiro_pontos {
+  id                Int             @id @default(autoincrement()) @db.UnsignedInt
+  id_roteiro_ponto  Int             @db.UnsignedInt
+  id_roteiro_compra Int             @db.UnsignedInt
+  data              DateTime        @db.DateTime(0)
+  observacoes       String?         @db.VarChar(255)
+  roteiro_compras   roteiro_compras @relation(fields: [id_roteiro_compra], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "roteiro_compra_roteiro_pontos_ibfk_2")
+
+  @@index([id_roteiro_compra], map: "id_roteiro_compra")
+  @@index([id_roteiro_ponto], map: "id_roteiro_ponto")
+}
+
+model roteiro_compras {
+  id                            Int                             @id @default(autoincrement()) @db.UnsignedInt
+  id_users                      Int                             @db.UnsignedInt
+  id_guia                       Int                             @db.UnsignedInt
+  id_roteiro                    Int                             @db.UnsignedInt
+  data_inicio                   DateTime                        @db.DateTime(0)
+  data_fim                      DateTime                        @db.DateTime(0)
+  n_pessoas                     Int                             @db.TinyInt
+  id_preco                      Int
+  observacoes                   String                          @db.VarChar(255)
+  grupo_de_visitas              grupo_de_visitas[]
+  roteiro_compra_roteiro_pontos roteiro_compra_roteiro_pontos[]
+  users                         users                           @relation(fields: [id_users], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "roteiro_compras_ibfk_1")
+  roteiros                      roteiros                        @relation(fields: [id_roteiro], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "roteiro_compras_ibfk_2")
+  guias                         guias                           @relation(fields: [id_guia], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "roteiro_compras_ibfk_3")
+
+  @@index([id_guia], map: "id_guia")
+  @@index([id_users], map: "id_users")
+  @@index([id_roteiro], map: "roteiro_compras_ibfk_2")
+}
+
+model roteiro_pontos {
+  id         Int      @id @default(autoincrement())
+  id_roteiro Int      @db.UnsignedInt
+  id_ponto   Int
+  roteiros   roteiros @relation(fields: [id_roteiro], references: [id])
+  pontos     pontos   @relation(fields: [id_ponto], references: [id])
+}
+
+model roteiros {
+  id              Int               @id @default(autoincrement()) @db.UnsignedInt
+  id_tipo_roteiro Int               @db.UnsignedInt
+  nome            String            @db.VarChar(255)
+  picPath         String?           @db.Text
+  roteiro_compras roteiro_compras[]
+  roteiro_pontos  roteiro_pontos[]
+  avaliacoes      avaliacoes[]
+  tipo_roteiros   tipo_roteiros     @relation(fields: [id_tipo_roteiro], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "roteiros_ibfk_1")
+
+  @@index([id_tipo_roteiro], map: "roteiros_ibfk_1")
+}
+
+model tipo_roteiros {
+  id       Int        @id @default(autoincrement()) @db.UnsignedInt
+  nome     String     @db.VarChar(255)
+  picPath  String?    @db.Text
+  roteiros roteiros[]
+}
+
+model users {
+  id               Int                @id @default(autoincrement()) @db.UnsignedInt
+  nome             String             @db.VarChar(255)
+  email            String             @db.VarChar(255)
+  contacto         String             @unique(map: "contacto") @db.VarChar(15)
+  password         String             @db.VarChar(255)
+  role             Int                @db.UnsignedInt
+  token            String?            @db.VarChar(64)
+  created_at       DateTime?          @default(now()) @db.Timestamp(0)
+  expires_at       DateTime?          @db.DateTime(0)
+  avaliacoes       avaliacoes[]
+  grupo_de_visitas grupo_de_visitas[]
+  roteiro_compras  roteiro_compras[]
+}

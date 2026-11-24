@@ -1,3 +1,7 @@
+
+import roteirosRoutes from './modules/roteiros/roteiros.routes';
+
+
 //Importa a biblioteca Express, que permite criar e gerir o servidor e as rotas da API.
 import express from "express";
 
@@ -5,7 +9,7 @@ import express from "express";
 
 import cors from 'cors';
 
-import { prisma } from './config/prisma/prisma';
+import { prisma } from './config/prisma';
 
 
 // Cria uma aplicação Express. A variável app será utilizada para configurar o servidor e definir as rotas.
@@ -30,6 +34,22 @@ app.get('/tipos-roteiro', async (req, res) => {
     const tipos = await prisma.tipo_roteiros.findMany();
     res.json(tipos);
 });
+
+app.use(cors());
+app.use(express.json());
+app.use('/roteiros', roteirosRoutes);
+
+app.get('/', (req, res) => {
+    res.json({ mensagem: 'Lisbon Whisper API a funcionar' });
+});
+
+app.get('/tipos-roteiro', async (req, res) => {
+    const tipos = await prisma.tipo_roteiros.findMany();
+    res.json(tipos);
+});
+
+app.use('/roteiros', roteirosRoutes);
+
 
 // Envia uma resposta no formato JSON com uma mensagem a confirmar que a API está a funcionar.
 
